@@ -1,14 +1,18 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, getReactNativePersistence, initializeAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MSG_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyDic0KfymSY1uyPJO7FRgNr0oEyVtKOqbw",
+  authDomain: "smart-assistance-3fdd0.firebaseapp.com",
+  projectId: "smart-assistance-3fdd0",
+  storageBucket: "smart-assistance-3fdd0.firebasestorage.app",
+  messagingSenderId: "240777125702",
+  appId: "1:240777125702:web:216714179cdaa173b10f47",
+  measurementId: "G-Q15M3GY7E8",
 };
+
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getFirestore(app);

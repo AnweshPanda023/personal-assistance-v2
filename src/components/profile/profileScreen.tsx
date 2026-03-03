@@ -1,16 +1,61 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { auth, db } from "@/src/firebaseConfig";
+import { router } from "expo-router";
+import { signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
 
-  const MenuButton = ({ title }: { title: string }) => (
-    <TouchableOpacity style={styles.menuButton}>
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+
+      // 🔥 If not logged in → go to login
+      if (!user) {
+        router.replace("/login"); // change path if needed
+
+        return;
+      }
+
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setDisplayName(data.displayName);
+          setUsername(data.username);
+        }
+      } catch (error) {
+        console.log("Error fetching user:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.replace("/login"); // change path if needed
+  };
+
+  const MenuButton = ({
+    title,
+    onPress,
+  }: {
+    title: string;
+    onPress?: () => void;
+  }) => (
+    <TouchableOpacity onPress={onPress} style={styles.menuButton}>
       <Text style={styles.menuText}>{title}</Text>
     </TouchableOpacity>
   );
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
@@ -19,8 +64,8 @@ export default function ProfileScreen() {
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <View style={styles.profileImage} />
-        <Text style={styles.userName}>User X</Text>
-        <Text style={styles.userEmail}>MY BIo</Text>
+        <Text style={styles.userName}>Hello {displayName || "User"}</Text>
+        <Text style={styles.userEmail}>Bio</Text>
       </View>
 
       {/* Menu Buttons */}
@@ -29,6 +74,11 @@ export default function ProfileScreen() {
         <MenuButton title="✏️ Edit Profile" />
         <MenuButton title="📘 Learn More" />
         <MenuButton title="📞 Contact Us" />
+        <MenuButton
+          title="🏠 Dashboard"
+          onPress={() => router.replace("/(tabs)")}
+        />
+        <MenuButton title="🚪 Logout" onPress={handleLogout} />
       </View>
     </View>
   );

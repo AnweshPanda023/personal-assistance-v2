@@ -1,23 +1,26 @@
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/src/firebaseConfig";
 
 export default function RootLayout() {
-  // const colorScheme = useColorScheme();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (loading) return null;
 
   return (
-    <ThemeProvider value={DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="profile/index"
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      {!user ? <Stack.Screen name="(auth)" /> : <Stack.Screen name="(tabs)" />}
+    </Stack>
   );
 }
