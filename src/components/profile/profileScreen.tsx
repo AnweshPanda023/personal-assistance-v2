@@ -42,7 +42,7 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    router.replace("/login"); // change path if needed
+    router.replace("/(auth)/login"); // change path if needed
   };
 
   const MenuButton = ({
