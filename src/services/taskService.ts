@@ -1,11 +1,11 @@
 import { auth, db } from "@/src/firebaseConfig";
 import {
-  collection,
   addDoc,
+  collection,
   deleteDoc,
   doc,
-  updateDoc,
   onSnapshot,
+  updateDoc,
 } from "firebase/firestore";
 
 const getTaskCollection = () => {
@@ -41,6 +41,12 @@ export const TaskService = {
   toggleTask: async (id: string, completed: boolean) => {
     await updateDoc(doc(getTaskCollection(), id), {
       completed: !completed,
+    });
+  },
+
+  updateTask: async (id: string, title: string) => {
+    await updateDoc(doc(getTaskCollection(), id), {
+      title,
     });
   },
 };

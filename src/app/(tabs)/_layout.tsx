@@ -12,7 +12,7 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         tabBarStyle: [
           styles.tabBar,
-          { paddingBottom: insets.bottom + 10,backgroundColor: "#f4f4f4", marginLeft: insets.left + 10 }, // safe area + extra padding
+          { paddingBottom: insets.bottom + 10,backgroundColor: "#f4f4f4" }, // safe area + extra padding
         ],
         tabBarIcon: ({ focused }) => {
           let iconName: any;
@@ -57,15 +57,14 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     position: "absolute",
-    bottom: 10,
     height: 70,
-    borderRadius: 25,
+    // borderRadius: 25,
     backgroundColor: "#fff",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     alignSelf: "center",
-    marginRight: 10,
+    // marginRight: 10,
 
     // Android
     elevation: 8,

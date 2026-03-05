@@ -39,5 +39,7 @@ export const useTasks = () => {
     addTask: TaskService.addTask,
     removeTask: TaskService.removeTask,
     toggleTask: TaskService.toggleTask,
+    updateTask : TaskService.updateTask,
+    
   };
 };

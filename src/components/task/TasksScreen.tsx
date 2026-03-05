@@ -14,12 +14,23 @@ import { TaskList } from "./TaskList";
 
 export default function TasksScreen() {
   const [taskInput, setTaskInput] = useState<string>("");
-  const { tasks, addTask, removeTask, toggleTask } = useTasks();
+  const { tasks, addTask, removeTask, toggleTask, updateTask } = useTasks();
+  const [editingTask, setEditingTask] = useState<string | null>(null);
   const handleAdd = () => {
-    if (taskInput.trim()) {
+    if (!taskInput.trim()) return;
+
+    if (editingTask) {
+      updateTask(editingTask, taskInput);
+      setEditingTask(null);
+    } else {
       addTask(taskInput);
-      setTaskInput("");
     }
+
+    setTaskInput("");
+  };
+  const handleEdit = (id: string, title: string) => {
+    setTaskInput(title);
+    setEditingTask(id);
   };
 
   return (
@@ -34,7 +45,9 @@ export default function TasksScreen() {
           onChangeText={setTaskInput}
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-          <Text style={styles.addButtonText}>Add</Text>
+          <Text style={styles.addButtonText}>
+            {editingTask ? "Update" : "Add"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -43,7 +56,12 @@ export default function TasksScreen() {
         keyExtractor={(item: Task) => item.id}
         renderItem={({ item }: { item: Task }) => (
           <View style={styles.taskContainer}>
-            <TaskList task={item} onRemove={removeTask} onToggle={toggleTask} />
+            <TaskList
+              task={item}
+              onRemove={removeTask}
+              onToggle={toggleTask}
+              onEdit={handleEdit}
+            />
           </View>
         )}
       />
@@ -52,7 +70,12 @@ export default function TasksScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+    marginBottom: 70,
+  },
   title: { marginTop: 15, fontSize: 24, fontWeight: "bold", marginBottom: 20 },
   inputContainer: { flexDirection: "row", marginBottom: 20 },
   input: {

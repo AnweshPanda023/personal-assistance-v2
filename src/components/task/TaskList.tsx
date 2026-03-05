@@ -7,9 +7,15 @@ interface TaskListProps {
   task: Task;
   onRemove: (id: string) => void;
   onToggle: (id: string, completed: boolean) => void;
+  onEdit: (id: string, title: string) => void;
 }
 
-export const TaskList = ({ task, onRemove, onToggle }: TaskListProps) => {
+export const TaskList = ({
+  task,
+  onRemove,
+  onToggle,
+  onEdit,
+}: TaskListProps) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -33,10 +39,20 @@ export const TaskList = ({ task, onRemove, onToggle }: TaskListProps) => {
           {task.title}
         </Text>
       </TouchableOpacity>
+      <View style={{ flexDirection: "row", gap: 10 }}>
+        <TouchableOpacity>
+          <Ionicons
+            name="create-outline"
+            onPress={() => onEdit(task.id, task.title)}
+            size={22}
+            color="#007bff"
+          />
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => onRemove(task.id)}>
-        <Ionicons name="trash-outline" size={22} color="red" />
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => onRemove(task.id)}>
+          <Ionicons name="trash-outline" size={22} color="red" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
