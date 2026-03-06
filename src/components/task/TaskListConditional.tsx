@@ -2,6 +2,7 @@ import { Task } from "@/src/models/TasksModel";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface TaskListConditionalProps {
   task: Task;
@@ -24,6 +25,7 @@ export const TaskListConditional = ({
     const [year, month, day] = dateStr.split("-");
     return `${month}/${day}/${year}`;
   };
+  const inset = useSafeAreaInsets();
 
   // Format time display helper
   const formatTimeDisplay = (time: string): string => {
@@ -36,7 +38,7 @@ export const TaskListConditional = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { marginBottom: inset.bottom }]}>
       <TouchableOpacity
         style={styles.leftSection}
         onPress={() => onToggle(task.id, task.completed || false)}

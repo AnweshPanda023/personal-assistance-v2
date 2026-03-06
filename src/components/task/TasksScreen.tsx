@@ -1,5 +1,6 @@
 import { useTasks } from "@/src/hooks/task";
 import { Task } from "@/src/models/TasksModel";
+import { RepetitionService } from "@/src/services/RepetitionService";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
@@ -12,10 +13,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { RepetitionModal } from "./RepetitionModal";
 import { TaskListConditional } from "./TaskListConditional";
 import { TimePicker } from "./TimePicker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export default function TasksScreen() {
+export default function TasksScreenWithRepetition() {
   const [taskInput, setTaskInput] = useState<string>("");
   const {
     tasks,
@@ -31,7 +34,9 @@ export default function TasksScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showRepetitionModal, setShowRepetitionModal] = useState(false);
 
+  const insets = useSafeAreaInsets();
   const filteredTasks = useMemo(() => {
     if (!selectedDate) return tasks;
 
@@ -62,6 +67,34 @@ export default function TasksScreen() {
     }
     setTaskInput("");
     setSelectedTime("");
+  };
+
+  const handleAddRepetitionTask = async (
+    title: string,
+    startDate: Date,
+    pattern: string,
+    occurrences: number,
+    dueTime?: string,
+  ) => {
+    try {
+      const result = await RepetitionService.addTaskWithRepetition(
+        title,
+        startDate,
+        pattern,
+        occurrences,
+        dueTime,
+      );
+
+      console.log(
+        `Created ${result.count} tasks with repetition pattern: ${pattern}`,
+      );
+      alert(
+        `✅ Created ${result.count} tasks\n\nDates: ${result.dates.slice(0, 5).join(", ")}${result.dates.length > 5 ? "..." : ""}`,
+      );
+    } catch (error) {
+      console.error("Error adding repetition task:", error);
+      alert("Failed to create repetition tasks");
+    }
   };
 
   const handleEdit = (id: string, title: string, dueTime?: string) => {
@@ -132,7 +165,7 @@ export default function TasksScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { marginBottom: insets.bottom +45}]}>
       <View style={styles.header}>
         <Text style={styles.title}>Tasks List</Text>
 
@@ -146,12 +179,18 @@ export default function TasksScreen() {
               {selectedDate ? formatDate(selectedDate) : "Pick a date"}
             </Text>
           </TouchableOpacity>
-
+          <TouchableOpacity
+            style={styles.repetitionButton}
+            onPress={() => setShowRepetitionModal(true)}
+          >
+            <Ionicons name="repeat" size={20} color="#fff" />
+            <Text style={styles.repetitionButtonText}>Repeat</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.timePickerButton}
             onPress={() => setShowTimePicker(true)}
           >
-            <Ionicons name="time-outline" size={20} color="#007bff" />
+            {/* <Ionicons name="time-outline" size={15} color="#007bff" /> */}
             <Text style={styles.timePickerText}>
               {selectedTime ? formatTimeDisplay(selectedTime) : "Pick time"}
             </Text>
@@ -260,6 +299,13 @@ export default function TasksScreen() {
         </View>
       </Modal>
 
+      <RepetitionModal
+        visible={showRepetitionModal}
+        onClose={() => setShowRepetitionModal(false)}
+        onAddTask={handleAddRepetitionTask}
+        selectedDate={selectedDate}
+      />
+
       <TimePicker
         visible={showTimePicker}
         currentTime={selectedTime}
@@ -349,10 +395,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    marginBottom: 55,
-    marginTop: 10,
+    marginTop: 20,
   },
-
   header: {
     paddingHorizontal: 20,
     paddingTop: 15,
@@ -360,7 +404,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e8eaed",
   },
-
   title: {
     alignSelf: "center",
     fontSize: 28,
@@ -368,15 +411,13 @@ const styles = StyleSheet.create({
     color: "#202124",
     marginBottom: 12,
   },
-
   pickersContainer: {
     flexDirection: "row",
     gap: 10,
     marginBottom: 10,
   },
-
   datePickerButton: {
-    flex: 1,
+    flex: 6,
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
@@ -385,15 +426,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
   },
-
   datePickerText: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#007bff",
     fontWeight: "500",
   },
-
   timePickerButton: {
-    flex: 1,
+    flex: 5,
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
@@ -405,21 +444,35 @@ const styles = StyleSheet.create({
 
   timePickerText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
     color: "#007bff",
     fontWeight: "500",
   },
 
   clearTimeIcon: {
-    padding: 4,
+    padding: 0,
   },
-
+  repetitionButton: {
+    flex: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#007bff",
+    borderRadius: 8,
+    gap: 4,
+  },
+  repetitionButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 12,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
-
   datePickerModal: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 20,
@@ -427,7 +480,6 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     maxHeight: "80%",
   },
-
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -437,13 +489,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e8eaed",
   },
-
   modalTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#202124",
   },
-
   monthNav: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -451,19 +501,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-
   monthYearText: {
     fontSize: 16,
     fontWeight: "600",
     color: "#202124",
   },
-
   weekHeader: {
     flexDirection: "row",
     paddingHorizontal: 20,
     marginBottom: 8,
   },
-
   weekday: {
     flex: 1,
     textAlign: "center",
@@ -472,14 +519,12 @@ const styles = StyleSheet.create({
     color: "#5f6368",
     paddingVertical: 8,
   },
-
   calendarGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     paddingHorizontal: 20,
     gap: 8,
   },
-
   dayButton: {
     width: "14%",
     height: 50,
@@ -490,30 +535,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     position: "relative",
   },
-
   emptyDay: {
     backgroundColor: "transparent",
   },
-
   dayButtonText: {
     fontSize: 14,
     fontWeight: "500",
     color: "#202124",
   },
-
   emptyDayText: {
     color: "transparent",
   },
-
   selectedDateButton: {
     backgroundColor: "#007bff",
   },
-
   selectedDateButtonText: {
     color: "#fff",
     fontWeight: "bold",
   },
-
   taskBadge: {
     position: "absolute",
     top: -2,
@@ -526,21 +565,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 10,
   },
-
   taskBadgeSelected: {
     backgroundColor: "#fff",
   },
-
   taskBadgeText: {
     fontSize: 9,
     fontWeight: "bold",
     color: "#fff",
   },
-
   taskBadgeTextSelected: {
     color: "#007bff",
   },
-
   clearButton: {
     marginHorizontal: 20,
     marginTop: 16,
@@ -548,14 +583,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#f0f0f0",
   },
-
   clearButtonText: {
     textAlign: "center",
     fontSize: 16,
     fontWeight: "500",
     color: "#666",
   },
-
   inputContainer: {
     flexDirection: "row",
     paddingHorizontal: 20,
@@ -564,7 +597,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e8eaed",
   },
-
   input: {
     flex: 1,
     borderWidth: 1,
@@ -575,26 +607,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     backgroundColor: "#f9f9f9",
   },
-
   addButton: {
     backgroundColor: "#007bff",
     paddingHorizontal: 16,
     justifyContent: "center",
     borderRadius: 8,
   },
-
   addButtonText: {
     color: "#fff",
     fontWeight: "600",
     fontSize: 14,
   },
-
   tasksSection: {
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 6,
   },
-
   tasksLabel: {
     marginTop: 5,
     marginLeft: 18,
@@ -603,11 +631,9 @@ const styles = StyleSheet.create({
     color: "#202124",
     marginBottom: 5,
   },
-
   taskContainer: {
     marginBottom: 10,
   },
-
   emptyState: {
     flex: 1,
     justifyContent: "center",
@@ -615,13 +641,11 @@ const styles = StyleSheet.create({
     gap: 16,
     minHeight: 200,
   },
-
   emptyStateText: {
     fontSize: 16,
     color: "#999",
     fontWeight: "500",
   },
-
   tasksScrollContainer: {
     flex: 1,
   },
